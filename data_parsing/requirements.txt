@@ -1,0 +1,5 @@
+xmltodict
+jupyter
+numpy
+opencv-python
+matplotlib

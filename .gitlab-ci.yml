@@ -1,0 +1,63 @@
+cache:
+  paths:
+    - .cache/pip
+    - .venv
+  key: "${CI_COMMIT_REF_SLUG}"
+
+stages:
+  - lint
+  - build
+  - test
+  - publish
+
+lint:
+  stage: lint
+  before_script:
+    - pip3 install --upgrade pip
+    - pip3 install poetry
+    - poetry config virtualenvs.in-project true
+    - poetry env use python3.8
+    - poetry install
+  script:
+    - poetry run flake8 lattice/
+  only:
+    - merge_requests
+  tags:
+    - wiener
+
+build:
+  stage: build
+  before_script:
+    - pip3 install --upgrade pip
+    - pip3 install poetry
+  script:
+    - poetry config virtualenvs.in-project true
+    - poetry env use python3.8
+    - poetry install
+    - poetry build -f wheel
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 30 days
+  only:
+    - master
+  tags:
+    - wiener
+
+test:
+  stage: test
+  script: poetry run pytest
+  tags:
+    - wiener
+  only:
+    - master
+
+publish:
+  stage: publish
+  script:
+    - for name in $(ls dist/*.whl); do echo $name; done
+  tags:
+    - wiener
+  only:
+    - master
+
